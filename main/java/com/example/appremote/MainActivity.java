@@ -11,6 +11,7 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import java.io.*;
 import java.net.*;
+import java.util.Enumeration;
 
 import static java.lang.Thread.sleep;
 
@@ -28,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
         }
         if (instance.getIp() == null) {
             System.out.println("Using default IP");
-            ip = "192.168.0.139";
+            ip = "192.168.0.140";
         }else {
             ip = instance.getIp();
         }
@@ -130,58 +131,34 @@ public class MainActivity extends AppCompatActivity {
             String subnet = "192.168.0.";
             String host;
             String response;
+            String myip = getSelfIp();
+
 
             try {
-                for(int i = 10; i<=254 ; i++){
+                System.out.println("My IP: "+myip);
+                for(int i = 100; i<=254 ; i++){
                     host= subnet +i;
+                    if (host.equals(myip)) {
+                        System.out.println("IP is phone");
+                        continue;
+                    }
                     System.out.println("pinging " + host + ":" + 65432);
                     InetAddress inet = InetAddress.getByName(host);
-                    if(inet.isReachable(14)) {
+                    if(inet.isReachable(50)) {
                         ip=host;
                         break;
-//                        System.out.println("Connect to " + host);
-//                        Socket test = new Socket(host, 65432);
-//                        DataOutputStream outToServer = new DataOutputStream(test.getOutputStream());
-//
-//                        BufferedReader in = new BufferedReader(new InputStreamReader(test.getInputStream()));
-//                        System.out.println("Send 0");
-//
-//                        outToServer.writeBytes("0");
-//                        outToServer.flush();
-//                        System.out.println("Listening to " + host);
-//                        if(test.getInputStream() != null) {
-//                            System.out.println("test.getInputStream is available");
-//                            if (in.readLine() != null) {
-//                                response = in.readLine();
-//                                System.out.println(response);
-//                                if (response == "0") {
-//                                    ip = host;
-//                                    test.close();
-//                                    break;
-//                                } else {
-//                                    test.close();
-//                                    continue;
-//                                }
-//
-//                            }else{
-//                                System.out.println("in.readLine is null");
-//                                test.close();
-//                            }
-//                        }else{
-//                            System.out.println("test.getInputStream is null");
-//                            test.close();
-//                        }
+
                     }
                 }
 
 
             } catch (UnknownHostException e) {
-                ip="192.168.0.139";
+                ip="192.168.0.140";
                 System.out.println("UnknownHostException");
                 System.out.println("using default ip");
                 System.out.println(e);
             } catch (IOException e){
-                ip="192.168.0.139";
+                ip="192.168.0.140";
                 System.out.println("IOException");
                 System.out.println("using default ip");
                 System.out.println(e);
@@ -191,6 +168,30 @@ public class MainActivity extends AppCompatActivity {
         public String getIp(){
             return ip;
         }
+    }
+
+    private String getSelfIp() {
+        Enumeration<NetworkInterface> networkInterfaces = null;
+        try {
+            networkInterfaces = NetworkInterface.getNetworkInterfaces();
+            while (networkInterfaces.hasMoreElements()) {
+                NetworkInterface ni = (NetworkInterface) networkInterfaces
+                        .nextElement();
+                Enumeration<InetAddress> nias = ni.getInetAddresses();
+                while(nias.hasMoreElements()) {
+                    InetAddress ia= (InetAddress) nias.nextElement();
+                    if (!ia.isLinkLocalAddress()
+                            && !ia.isLoopbackAddress()
+                            && ia instanceof Inet4Address) {
+                        return ia.getHostAddress();
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
+        return null;
+
     }
 
 
